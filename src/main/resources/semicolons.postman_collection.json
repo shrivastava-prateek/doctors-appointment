@@ -1,0 +1,127 @@
+{
+	"info": {
+		"_postman_id": "cbf12e73-3aa9-4609-a30d-b6fadd8def6d",
+		"name": "semicolons",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "{{hostname}}appointment/searchDoctors",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"docName\":\"\",\n\t\"city\":\"\",\n\t\"specialization\":\"\",\n\t\"address1\":\"Congress Nagar\"\n\t\n}"
+				},
+				"url": {
+					"raw": "{{hostname}}appointment/searchDoctors",
+					"host": [
+						"{{hostname}}appointment"
+					],
+					"path": [
+						"searchDoctors"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{hostname}}appointment/getSlots",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"docID\":\"1\",\n\t\"date\":\"2019-03-09\"\n}"
+				},
+				"url": {
+					"raw": "{{hostname}}appointment/getSlots",
+					"host": [
+						"{{hostname}}appointment"
+					],
+					"path": [
+						"getSlots"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{hostname}}appointment/bookSlots",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"firstname\":\"ghanshyam\",\n\t\"lastName\":\"dhabale\",\n\t\"cellPhone\":\"12345567890\",\n\t\"address\":\"Lokhande Nagar\",\n\t\"email\":\"ajaykumar_shukla@persistent.com\",\n\t\"docId\":\"1\",\n\t\"slotId\":\"6\"\n}"
+				},
+				"url": {
+					"raw": "{{hostname}}appointment/bookSlot",
+					"host": [
+						"{{hostname}}appointment"
+					],
+					"path": [
+						"bookSlot"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{hostname}}appointment/cancelBooking?bookingId=14",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{hostname}}appointment/cancelBooking?bookingId=14",
+					"host": [
+						"{{hostname}}appointment"
+					],
+					"path": [
+						"cancelBooking"
+					],
+					"query": [
+						{
+							"key": "bookingId",
+							"value": "14"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

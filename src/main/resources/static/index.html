@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Real Time Scheduling with AngularJS and Firebase</title>
+  <!-- dependency includes -->
+  <script src="bower_components/jquery/dist/jquery.min.js"></script>
+  <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+  <script src="bower_components/angular/angular.min.js"></script>
+  <script src="bower_components/angular-animate/angular-animate.min.js"></script>
+  <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
+
+  <!-- optional for auto complete / suggested value feature -->
+  <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
+
+  <!-- angular advanced searchbox includes -->
+  <link rel="stylesheet" href="bower_components/angular-advanced-searchbox/dist/angular-advanced-searchbox.min.css">
+  <script src="bower_components/angular-advanced-searchbox/dist/angular-advanced-searchbox-tpls.min.js"></script>
+
+  <link rel="stylesheet" href="css/style.css">
+
+
+</head>
+
+<body>
+
+  <div class="container-fluid" ng-app="scheduleApp" ng-controller="mainController">
+    <div id="DoctorSearchContainer" ng-show="showDoctorSearchSection">
+      <div class="s002" >
+        <form>
+          <fieldset>
+            <legend></legend>
+          </fieldset>
+  
+          <div style="padding:15px;padding-bottom:40px;background:rgba(0, 0, 0, 0.5)">
+            <nit-advanced-searchbox ng-model="searchParams" parameters="availableSearchParams" placeholder="Search...">
+            </nit-advanced-searchbox>
+            <button  class="pull-right btn btn-deep-orange btn-primary" ng-click="searchDoctors()">Search</button>
+            <a style="top: 16px; position: relative; right: 14px; color: #337ab7;" href="#" class=" pull-right" role="button" aria-pressed="true" data-toggle="modal" data-target="#cancelAppointment">Cancel Appointment</a>
+          </div>
+          <div class="inner-form hide">
+            <!-- <div class="input-field fifth-wrap">
+              <button class="btn-search" type="button">SEARCH</button>
+            </div> -->
+          </div>
+        </form>
+      </div>
+  
+    </div>
+<!-- name,city,state,zip,email,address,fees,speciality -->
+    <div id="DoctorsListContainer" ng-show="showDoctorsListSection">
+        <div class="page-header text-center" >
+            <h1>Doctor's List</h1>
+          </div>
+    
+      <div class = "list-item container" ng-repeat= "doctor in doctorList| offset: currentPage*itemsPerPage | limitTo: itemsPerPage"">
+            <div class="row">
+              <div class="col-sm-9">
+                  <h3>{{doctor.docName}}</h3>
+                  <img src="./images/doctor.svg" width=15 height=15></img><p style="color:grey;display:inline"> {{doctor.specialization}}</p>
+              </div>
+              <div class="col-sm-3" style="text-align:end" >
+                  <img src="./images/rupee.svg" width=15 height=15></img> {{doctor.fees}}
+              </div>
+            </div> 
+            <div class="row">
+              <div class="col-sm-9">
+                  <img src="./images/location.svg" width=15 height=15></img> {{doctor.address2}}, {{doctor.address1}}
+              </div>
+              <div class="col-sm-3" style="text-align:end">
+                  <img src="./images/email.svg" width=15 height=15></img> {{doctor.email}}
+              </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-12">
+                    <p id = "aboutDoctor">"{{doctor.aboutDoctor}}"</p>
+                </div>
+
+            </div>
+            <div class="row">
+              <div class="col-sm-4"></div>
+              <div  style="text-align:end" class="col-sm-8">
+              <input   type="date" min="2019-03-10" max="2019-03-17" ng-model="doctor.appointmentDate">
+                <input type="button" class="btn btn-success" ng-click="checkAvailability(doctor)" value="Book Appointment">
+              </div>
+
+            </div>
+
+
+
+        </div>
+
+    </div>
+
+    <div id ="BookAppointmentContainer" ng-show="showBookAppointmentSection">
+      <div class="page-header text-center" >
+        <h1>Schedule Appointment</h1>
+      </div>
+
+
+      <div class="row times">
+
+        <div class="col-xs-4 text-center" ng-repeat="day in appointmentDetails">
+
+          <h2>{{ day.weekday }}</h2>
+          <h2>{{ day.weekDate }}</h2>
+
+          <div class="time-slot" ng-repeat="slot in day.slots">
+            <input type="checkbox" id="{{ day.weekday }}-{{ $index }}" data-toggle="modal" data-target="#myModal" ng-model="slot.booked" ng-disabled="slot.booked" ng-change="changeSlot(day, slot,$parent.$index, $index);">
+            <label for="{{ day.weekday }}-{{ $index }}">{{ slot.slotStart }}<br>
+              <span ng-if="slot.booked">Booked</span>
+              <span ng-if="!slot.booked">Available</span>
+            </label>
+          </div>
+        </div>
+
+      </div>
+
+
+      
+    </div>
+
+     <!-- Modal -->
+
+     <div class="modal fade" id="cancelAppointment" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+     aria-hidden="true">
+     <div class="modal-dialog" role="document">
+         <form name="myForm">
+       <div class="modal-content">
+         <div class="modal-header text-center">
+           <h4 class="modal-title w-100 font-weight-bold">Cancel Appointment</h4>
+           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+             <span aria-hidden="true">&times;</span>
+           </button>
+         </div>
+   
+         <div class="modal-body mx-3">
+             <i class="fas fa-user prefix grey-text"></i>
+             <label data-error="wrong" data-success="right" for="orangeForm-name">Appointment ID<span class="text-danger">*</span></label>
+             <input type="text" ng-model="appointmentID" id="orangeForm-name" class="form-control validate" required >
+   
+         </div>
+         <div class="modal-footer d-flex justify-content-center">
+           <button ng-disabled="!appointmentID" class="btn btn-deep-orange btn-primary" ng-click="cancelAppointment()">Cancel Appointment</button>
+         </div>
+       </div>
+     </form>
+     </div>
+   </div>
+
+
+
+
+
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+      <form name="myForm">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Patient's Details</h4>
+        <sapn>Booking Details </sapn><span>-</span> <span>Date:{{selectedSlotDetails.day.weekDate}}</span>  <span> Time:{{selectedSlotDetails.slot.slotStart}}</span>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body mx-3">
+          <div class="row">
+        <div class="md-form mb-4 col-xs-6 col-sm-6 col-md-6 col-lg-6">
+          <i class="fas fa-user prefix grey-text"></i>
+          <label data-error="wrong" data-success="right" for="orangeForm-name">First Name<span class="text-danger">*</span></label>
+          <input type="text" ng-model="patientDetails.firstname" id="orangeForm-name" class="form-control validate" required >
+        </div>
+        <div class="md-form mb-4 col-xs-6 col-sm-6 col-md-6 col-lg-6">
+            <i class="fas fa-user prefix grey-text"></i>
+            <label data-error="wrong" data-success="right" for="orangeForm-name">Last Name<span class="text-danger">*</span></label>
+            <input type="text" ng-model="patientDetails.lastName" id="orangeForm-name" class="form-control validate" required >
+          </div>
+          <div class="md-form mb-4 col-xs-6 col-sm-6 col-md-6 col-lg-6">
+              <i class="fas fa-envelope prefix grey-text"></i>
+              <label data-error="wrong" data-success="right" for="orangeForm-email">Your Email<span class="text-danger">*</span></label>
+              <input type="email" name="patEmail" ng-model="patientDetails.email" id="orangeForm-email" class="form-control validate" required >
+              <span class="text-danger" ng-show="myForm.patEmail.$touched && myForm.patEmail.$invalid">Enterted email is inavlid.</span>
+            </div>
+
+        <div class="md-form mb-4 col-xs-6 col-sm-6 col-md-6 col-lg-6">
+            <i class="fas fa-lock prefix grey-text"></i>
+            <label data-error="wrong" data-success="right" for="orangeForm-pass">Contact Number<span class="text-danger">*</span></label>
+            <input ng-minlength="10" ng-maxlength="10" type="number" name="patContNumber" ng-model="patientDetails.cellPhone" id="orangeForm-pass" class="form-control validate" required >
+            <span class="text-danger" ng-show="myForm.patContNumber.$touched && myForm.patContNumber.$invalid">Enterted Contact Number is inavlid.</span>
+          </div>
+        <div class="md-form mb-4 col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            <i class="fas fa-lock prefix grey-text"></i>
+            <label data-error="wrong" data-success="right" for="orangeForm-pass">Address</label>
+            <textarea ng-model="patientDetails.address" class="form-control" rows="5" id="comment" class="form-control validate"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer d-flex justify-content-center">
+        <button ng-disabled="myForm.$invalid" class="btn btn-deep-orange btn-primary" ng-click="bookAppointment()">Book Appointment</button>
+      </div>
+    </div>
+  </form>
+  </div>
+</div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="loadMe" tabindex="-1" role="dialog" aria-labelledby="loadMeLabel">
+    <div class="modal-dialog modal-sm" role="document">
+      <div class="modal-content">
+        <div class="modal-body text-center">
+          <div class="loader"></div>
+          <div clas="loader-txt">
+            <p>Check out this slick bootstrap spinner modal. <br><br><small>We are addicted to Bootstrap... #love</small></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<!-- <div class="text-center">
+  <a href="" ng-disabled="myForm.$invalid" class="btn btn-default btn-rounded mb-4" data-toggle="modal" data-target="#modalRegisterForm">Launch
+    Modal Register Form</a>
+</div> -->
+
+
+  </div>
+  
+  <script src="js/bootbox.min.js"></script>
+
+  <script src="js/moment.js"></script>
+
+  <script src="js/index.js"></script>
+
+
+
+
+</body>
+
+</html>

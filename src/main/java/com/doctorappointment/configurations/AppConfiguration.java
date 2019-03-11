@@ -1,0 +1,9 @@
+package com.doctorappointment.configurations;
+
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class AppConfiguration {
+
+	
+}
